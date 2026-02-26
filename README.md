@@ -2,6 +2,7 @@
 Conjunto de Mandelbrot em WebAssembly e C++
 - FEITO ATÉ ENTÃO: <br>
 1. Canva no JS e estrutura básica da página <br>
+2. CMakeList e build do programa
 - TO DO: <br>
 1. Implementação do Mandelbrot em C++ <br>
 2. Sistema de build (simples, por favor) <br>
