@@ -1,0 +1,4 @@
+/build
+/build-*/
+/web/mandelbrot.js
+/web/mandelbrot.wasm
