@@ -1,18 +1,335 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
     <title>Mandelbrot WASM</title>
-</head>
-<body>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      rel="stylesheet"
+    />
 
-<canvas id="canvas" width="800" height="600"></canvas>
-<br>
-<button onclick="render()">Render</button>
+    <style>
+      /* Estilização customizada para a barra de rolagem */
+      pre::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      pre::-webkit-scrollbar-track {
+        background: #1f2937;
+        border-radius: 4px;
+      }
+      pre::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 4px;
+      }
+      pre::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-700 flex flex-col items-center min-h-screen py-8 font-sans text-gray-200 px-4"
+  >
+    <header
+      class="bg-gray-800 rounded-xl shadow-lg border border-gray-600 p-6 mb-8 text-center max-w-4xl w-full"
+    >
+      <h1 class="text-4xl font-bold mb-4 text-white">Conjunto de Mandelbrot</h1>
+      <p class="mt-4 text-sm text-gray-300 leading-relaxed text-justify">
+        Em matemática, o conjunto de Mandelbrot é um fractal definido como o
+        conjunto de pontos c no plano complexo cuja sequência definida por z<sub
+          >n+1</sub
+        >
+        = z<sub>n</sub><sup>2</sup> + c, com z<sub>0</sub> = 0, não diverge para
+        o infinito. O conjunto é nomeado em homenagem ao matemático Benoît
+        Mandelbrot, que estudou e popularizou esse tipo de fractal. Ele é
+        conhecido por sua complexidade e beleza visual, exibindo uma infinidade
+        de detalhes à medida que se aproxima de suas bordas. O conjunto de
+        Mandelbrot é frequentemente representado graficamente, onde os pontos
+        que pertencem ao conjunto são coloridos de maneira diferente dos pontos
+        que não pertencem, criando imagens impressionantes e intricadas.
+      </p>
+    </header>
 
-<script src="mandelbrot.js"></script>
-<script src="main.js"></script>
+    <button
+      onclick="render()"
+      class="mb-6 bg-blue-600 hover:bg-blue-500 active:bg-blue-400 transition-colors cursor-pointer text-white font-bold py-2 px-8 rounded-lg shadow-lg"
+    >
+      Gerar Fractal
+    </button>
 
-</body>
+    <canvas
+      id="canvas"
+      width="800"
+      height="600"
+      class="bg-black rounded shadow-2xl border border-gray-600 max-w-full"
+    ></canvas>
+
+    <div
+      class="w-full max-w-4xl mt-10 bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-600"
+    >
+      <div class="flex flex-wrap border-b border-gray-600 bg-gray-900">
+        <button
+          class="tab-btn flex-1 py-3 px-2 text-sm font-medium text-blue-400 border-b-2 border-blue-500 focus:outline-none transition-colors"
+          onclick="openTab(event, 'tab-visao-geral')"
+        >
+          Visão Geral
+        </button>
+        <button
+          class="tab-btn flex-1 py-3 px-2 text-sm font-medium text-gray-400 border-b-2 border-transparent hover:text-gray-200 focus:outline-none transition-colors"
+          onclick="openTab(event, 'tab-cpp')"
+        >
+          O Papel do C++ (WASM)
+        </button>
+        <button
+          class="tab-btn flex-1 py-3 px-2 text-sm font-medium text-gray-400 border-b-2 border-transparent hover:text-gray-200 focus:outline-none transition-colors"
+          onclick="openTab(event, 'tab-js')"
+        >
+          O Papel do JavaScript
+        </button>
+      </div>
+
+      <div class="p-6 text-gray-300">
+        <div id="tab-visao-geral" class="tab-content block">
+          <h2 class="text-xl font-bold text-white mb-3">
+            Como os códigos interagem?
+          </h2>
+          <p class="mb-3">
+            A comunicação entre JavaScript e WebAssembly (C++) ocorre
+            principalmente através de
+            <strong>memória linear compartilhada</strong>. Em vez de enviar
+            imagens pesadas de um lado para o outro, eles acessam o mesmo bloco
+            de memória RAM.
+          </p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>
+              <strong>1. Inicialização:</strong> O JavaScript carrega o módulo
+              compilado.
+            </li>
+            <li>
+              <strong>2. Alocação:</strong> O JS pede ao C++ para reservar um
+              espaço na memória para os pixels.
+            </li>
+            <li>
+              <strong>3. Processamento:</strong> O JS aciona a função de cálculo
+              no C++, passando as coordenadas matemáticas e o tamanho da tela. O
+              C++ processa a matemática intensiva do fractal muito mais rápido
+              que o JS faria.
+            </li>
+            <li>
+              <strong>4. Renderização:</strong> O JS lê os bytes que o C++
+              acabou de escrever nessa memória e os pinta diretamente no
+              <code>&lt;canvas&gt;</code> do HTML.
+            </li>
+          </ul>
+        </div>
+
+        <div id="tab-cpp" class="tab-content hidden">
+          <h2 class="text-xl font-bold text-white mb-3">
+            Motor de Cálculo: O Código C++
+          </h2>
+          <p class="mb-4 text-sm text-gray-400">
+            O código C++ atua como o processador da aplicação. Ele traduz as
+            coordenadas da tela, executa o loop do fractal e grava as cores
+            resultantes (RGBA) diretamente no buffer de memória que o JS lerá.
+          </p>
+
+          <pre
+            class="bg-gray-900 rounded-lg p-4 max-h-[500px] overflow-auto text-sm font-mono border border-gray-700 shadow-inner"
+          ><code class="language-cpp">#include &lt;cmath&gt;
+#include &lt;cstdint&gt;
+
+extern "C" {
+
+    static uint8_t* pixel_buffer = nullptr;
+    static int total_bytes = 0;
+
+    uint8_t* allocate_buffer(int width, int height) {
+        total_bytes = width * height * 4; // 4 bytes por pixel (RGBA)
+        pixel_buffer = new uint8_t[total_bytes];
+        return pixel_buffer;
+    }
+
+    void generate_mandelbrot(
+        int width,
+        int height,
+        double centerX,
+        double centerY,
+        double zoom,
+        int maxIter
+    ) {
+        //calcular a metade da tela fora do loop para economizar processamento
+        double half_width = width * 0.5;
+        double half_height = height * 0.5;
+
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+
+                double c_re = centerX + (col - half_width) / zoom;
+                double c_im = centerY + (row - half_height) / zoom;
+
+                double z_re = 0.0;
+                double z_im = 0.0;
+                int n = 0;
+
+                // loop do fractal de mandelbrot
+                while ((z_re * z_re + z_im * z_im) <= 4.0 && n < maxIter) {
+                    double next_re = (z_re * z_re) - (z_im * z_im) + c_re;
+                    z_im = 2.0 * z_re * z_im + c_im;
+                    z_re = next_re;
+                    n++;
+                }
+
+                // cálculo do índice do array 1D
+                int pixel_index = (row * width + col) * 4;
+
+                // lógica de cor com variáveis diferentes
+                uint8_t intensity = static_cast&lt;uint8_t&gt;(255.0 * n / maxIter);
+
+                pixel_buffer[pixel_index + 0] = intensity; // Red
+                pixel_buffer[pixel_index + 1] = intensity; // Green
+                pixel_buffer[pixel_index + 2] = intensity; // Blue
+                pixel_buffer[pixel_index + 3] = 255;       // Alpha (opacidade máxima)
+            }
+        }
+    }
+}</code></pre>
+        </div>
+
+        <div id="tab-js" class="tab-content hidden">
+          <h2 class="text-xl font-bold text-white mb-3">
+            Controlador da Interface: O Código JavaScript
+          </h2>
+          <p class="mb-4 text-sm text-gray-400">
+            O JavaScript orquestra a interface gráfica. Ele cria um ponteiro de
+            memória no WASM, dispara a função C++ e lê os bytes calculados para
+            renderizar a imagem no Canvas.
+          </p>
+
+          <pre
+            class="bg-gray-900 rounded-lg p-4 max-h-[500px] overflow-auto text-sm font-mono border border-gray-700 shadow-inner"
+          ><code class="language-javascript">let Module;
+
+async function init() {
+    Module = await createModule();
+}
+
+init();
+
+async function render() {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const ptr = Module._allocate_buffer(width, height);
+
+    Module._generate_mandelbrot(
+        width,
+        height,
+        -0.5,
+        0.0,
+        300.0,
+        500
+    );
+
+    const imageData = ctx.createImageData(width, height);
+
+    const wasmMemory = new Uint8ClampedArray(
+        Module.HEAPU8.buffer,
+        ptr,
+        width * height * 4
+    );
+
+    imageData.data.set(wasmMemory);
+
+    ctx.putImageData(imageData, 0, 0);
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-8 mb-4 border-t border-gray-600 pt-6 w-full max-w-4xl">
+      <p class="text-gray-400 text-sm text-center">
+        Desenvolvido por: <br />
+        <span
+          class="font-semibold text-gray-300 mt-2 inline-block leading-loose"
+        >
+          <a
+            href="https://github.com/diogokrugers"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-blue-400 transition-colors"
+            >Diogo Krüger Souto</a
+          >,
+          <a
+            href="https://github.com/Malu-Prata"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-blue-400 transition-colors"
+            >Maria Luiza Batista Prata</a
+          >,
+          <a
+            href="https://github.com/milena-ferreira28"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-blue-400 transition-colors"
+            >Milena Alves Ferreira</a
+          >,
+          <a
+            href="https://github.com/kbw1nter"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-blue-400 transition-colors"
+            >Kananda Barbosa Winter</a
+          >,
+          <a
+            href="https://github.com/lucarod"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-blue-400 transition-colors"
+            >Luca Rodrigues da Silva</a
+          >
+        </span>
+      </p>
+    </footer>
+
+    <script src="mandelbrot.js"></script>
+    <script src="main.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+    <script>
+      function openTab(evt, tabId) {
+        // Esconder todos os conteúdos das abas
+        const contents = document.querySelectorAll(".tab-content");
+        contents.forEach((content) => {
+          content.classList.add("hidden");
+          content.classList.remove("block");
+        });
+
+        // Remover classes ativas de todos os botões
+        const buttons = document.querySelectorAll(".tab-btn");
+        buttons.forEach((button) => {
+          button.classList.remove("text-blue-400", "border-blue-500");
+          button.classList.add("text-gray-400", "border-transparent");
+        });
+
+        // Mostrar o conteúdo da aba selecionada
+        document.getElementById(tabId).classList.remove("hidden");
+        document.getElementById(tabId).classList.add("block");
+
+        // Adicionar classes ativas ao botão clicado
+        evt.currentTarget.classList.remove(
+          "text-gray-400",
+          "border-transparent",
+        );
+        evt.currentTarget.classList.add("text-blue-400", "border-blue-500");
+      }
+    </script>
+  </body>
 </html>
-
