@@ -56,13 +56,6 @@ Na raiz do repositório:
     chmod +x build.sh
     ./build.sh
 
-Após a compilação, os arquivos gerados estarão em:
-- build/mandelbrot.js
-- build/mandelbrot.wasm
-
-Copie os arquivos para a pasta web/:
-    cp build/mandelbrot.js web/
-    cp build/mandelbrot.wasm web/
 
 ###  Como Executar o Projeto (Rodar no Navegador)
 WebAssembly não funciona abrindo o HTML direto pelo arquivo, é necessário um servidor HTTP.
