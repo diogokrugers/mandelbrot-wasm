@@ -1,6 +1,6 @@
 # Mandelbrot em WebAssembly (C++ + JavaScript)
 
-##  Descrição do Projeto
+## Descrição do Projeto
 
 Este projeto implementa a geração do **Conjunto de Mandelbrot** utilizando:
 
@@ -12,7 +12,7 @@ A motivação do projeto é demonstrar a integração entre linguagens de baixo 
 
 ---
 
-##  Estrutura do Repositório
+## Estrutura do Repositório
 
 ```text
 .
@@ -28,7 +28,9 @@ A motivação do projeto é demonstrar a integração entre linguagens de baixo 
 ├── CMakeLists.txt         # Configuração do build para WebAssembly
 ├── build.sh               # Script para compilar o projeto
 ├── README.md              # Este arquivo
-├── LICENSE '''
+└── LICENSE
+```
+---
 
 ##  Dependências, Compilação, Execução, Integração e Makefile
 
@@ -47,9 +49,9 @@ Comandos para instalar o Emscripten:
     ./emsdk activate latest
     source ./emsdk_env.sh
 
-⚠️ O comando `source ./emsdk_env.sh` deve ser executado em todo novo terminal antes de compilar o projeto.
+O comando `source ./emsdk_env.sh` deve ser executado em todo novo terminal antes de compilar o projeto.
 
-### ⚙️ Como Compilar o Projeto (Gerar WebAssembly)
+###  Como Compilar o Projeto (Gerar WebAssembly)
 Na raiz do repositório:
     chmod +x build.sh
     ./build.sh
@@ -62,8 +64,8 @@ Copie os arquivos para a pasta web/:
     cp build/mandelbrot.js web/
     cp build/mandelbrot.wasm web/
 
-### ▶️ Como Executar o Projeto (Rodar no Navegador)
-⚠️ WebAssembly não funciona abrindo o HTML direto pelo arquivo, é necessário um servidor HTTP.
+###  Como Executar o Projeto (Rodar no Navegador)
+WebAssembly não funciona abrindo o HTML direto pelo arquivo, é necessário um servidor HTTP.
 
 Entre na pasta web/:
     cd web
@@ -76,17 +78,5 @@ Abra no navegador:
 
 Clique no botão “Gerar Fractal” para renderizar o Conjunto de Mandelbrot.
 
-### 🧩 Integração entre C++ e JavaScript (WASM)
+###  Integração entre C++ e JavaScript (WASM)
 O C++ implementa o cálculo do fractal de Mandelbrot e escreve os pixels em um buffer de memória linear. O código é compilado para WebAssembly utilizando Emscripten. O JavaScript chama as funções exportadas do C++ (`allocate_buffer` e `generate_mandelbrot`), acessa diretamente a memória linear do WASM por meio de `Module.HEAPU8`, converte o buffer em `ImageData` e renderiza o resultado no elemento `<canvas>` do HTML. Essa abordagem demonstra interoperabilidade real entre linguagens, utilizando compartilhamento de memória entre JavaScript e C++ via WebAssembly.
-
-### 🛠️ Makefile (Opcional para Padronização)
-Embora o projeto utilize CMake + Emscripten como sistema principal de build, um Makefile simples pode ser utilizado para atender ao requisito da disciplina:
-    build:
-        ./build.sh
-
-    run:
-        cd web && python3 -m http.server 8000
-
-Uso:
-    make build
-    make run
