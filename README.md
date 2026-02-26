@@ -71,7 +71,7 @@ Uso:
 Na raiz do repositório:
 ```
     chmod +x build.sh
-    .make build
+    make build
 ```
 Esse comando realiza as seguintes etapas:
 
