@@ -32,7 +32,8 @@ O C++ implementa o cálculo do fractal de Mandelbrot e escreve os pixels em um b
 ├── build.sh               # Script de compilação (Emscripten + CMake) - é utilizado somente pelo 'make build'
 ├── Makefile               # Atalhos para build e execução (run) e clean do projeto
 ├── README.md              # Este arquivo
-└── LICENSE                # MIT
+├── LICENSE                # MIT
+└── Documentação.pdf       # Documentação da implementação
 ```
 ---
 
@@ -95,6 +96,6 @@ Clique no botão “Gerar Fractal” para renderizar o Conjunto de Mandelbrot.
 
 Iniciar um servidor HTTP local é necessário pois WebAssembly não funciona corretamente abrindo o HTML direto pelo arquivo (file://).
 
-
 ##  Clean
 Ao estar na raiz do repositório, se for rodado o comando `make clean`, a pasta `/build`, juntamente com os arquivos `mandelbrot.js` e `mandelbrot.wasm` (ambos encontrados na pasta /web) serão removidos.
+
